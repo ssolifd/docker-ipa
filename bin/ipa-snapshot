@@ -1,0 +1,106 @@
+#!/bin/bash
+REALM=${1:-"AFS-INTERNAL"}
+DEST=$PWD/ipa.SNAPSHOT.tmp
+
+rm -rf $PWD/ipa.SNAPSHOT.tmp
+mkdir -p $PWD/ipa.SNAPSHOT.tmp
+
+if [ "$1" = "" ] || [ "$1" = "1" ]
+then
+	# https://www.freeipa.org/page/V3/Backup_and_Restore
+	echo "Copying data... (stopping IPA before)"
+	service ipa stop
+	echo "
+/usr/share/ipa/html
+/etc/pki-ca
+/etc/httpd/alias
+/var/lib/pki-ca
+/var/lib/ipa-client/sysrestore
+/var/lib/sss/pubconf/krb5.include.d
+/var/lib/authconfig/last
+/var/lib/certmonger
+/var/lib/ipa
+/var/run/dirsrv
+/var/lock/dirsrv
+/etc/named.conf
+/etc/sysconfig/pki-ca
+/etc/sysconfig/dirsrv
+/etc/sysconfig/ntpd
+/etc/sysconfig/krb5kdc
+/etc/sysconfig/pki/ca/pki-ca
+/etc/sysconfig/authconfig
+/etc/resolv.conf
+/etc/pki/nssdb/cert8.db
+/etc/pki/nssdb/key3.db
+/etc/pki/nssdb/secmod.db
+/etc/nsswitch.conf
+/etc/krb5.keytab
+/etc/sssd/sssd.conf
+/etc/openldap/ldap.conf
+/etc/security/limits.conf
+/etc/httpd/conf/password.conf
+/etc/httpd/conf/ipa.keytab
+/etc/httpd/conf.d/ipa-pki-proxy.conf
+/etc/httpd/conf.d/ipa-rewrite.conf
+/etc/httpd/conf.d/nss.conf
+/etc/httpd/conf.d/ipa.conf
+/etc/ssh/sshd_config
+/etc/ssh/ssh_config
+/etc/krb5.conf
+/etc/group
+/etc/passwd
+/etc/ipa/ca.crt
+/etc/ipa/default.conf
+/etc/named.keytab
+/etc/ntp.conf
+/etc/dirsrv/ds.keytab
+/etc/sysconfig/dirsrv-${REALM}
+/etc/sysconfig/dirsrv-PKI-IPA
+/root/ca-agent.p12
+/root/cacert.p12
+/var/kerberos/krb5kdc/kdc.conf
+/etc/dirsrv/slapd-${REALM}
+/var/lib/dirsrv/scripts-${REALM}
+/var/lib/dirsrv/slapd-${REALM}
+/usr/lib64/dirsrv/slapd-PKI-IPA
+/etc/dirsrv/slapd-PKI-IPA
+/var/lib/dirsrv/slapd-PKI-IPA
+/var/log/pki-ca
+/var/log/dirsrv/slapd-${REALM}
+/var/log/dirsrv/slapd-PKI-IPA
+/var/log/httpd
+/var/log/ipaserver-install.log
+/var/log/kadmind.log
+/var/log/pki-ca-install.log
+/var/log/messages
+/var/log/ipaclient-install.log
+/var/log/secure
+/var/log/ipaserver-uninstall.log
+/var/log/pki-ca-uninstall.log
+/var/log/ipaclient-uninstall.log
+/var/named/data/named.run
+" > $DEST/volume-data-list
+	tar cf - --numeric-owner --ignore-failed-read -T $DEST/volume-data-list | tar xf - -C "$DEST"
+service ipa start
+fi
+
+
+if [ "$1" = "" ] || [ "$1" = "2" ]
+then
+	echo "Deleting logs ..."
+	rm -rf 	"$DEST"/var/log/pki-ca/* \
+		"$DEST"/var/log/dirsrv/slapd-PKI-IPA/* \
+		"$DEST"/var/log/dirsrv/slapd-${REALM}/* 
+fi
+
+if [ "$1" = "" ] || [ "$1" = "3" ]
+then
+	echo "Tarring image..."
+	CURRENT_DIR=$PWD
+	cd $DEST
+	tar cvzf $CURRENT_DIR/ipa-SNAPSHOT-$(date +%Y%m%d_%H%M).tar.gz --numeric-owner .
+	cd $PWD
+	echo "and deleting temp files ..."
+        rm -rf $DEST
+fi
+

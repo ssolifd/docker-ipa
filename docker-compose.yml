@@ -1,0 +1,15 @@
+# yoguivictor/ipa:centos-6
+
+# IDEA: We need a free and distributable copy of an existant RHEL6 IDM server
+# - ipa-start --> taken almost from adelton/freeipa-server
+# - ipa-snapshot --> make backup of running IPA instance
+# - ipa-restore f --> restore snapshot f
+
+idm:
+  image: yoguivictor/ipa:centos-6
+  nameserver: 127.0.0.1
+  hostname: idm.example.org
+  environment:
+  # needed for save snapshots (ipa-snapshot)
+  - REALM=EXAMPLE-REALM
+

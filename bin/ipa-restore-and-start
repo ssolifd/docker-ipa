@@ -1,0 +1,8 @@
+#!/bin/bash
+
+SNAPSHOT_FILE=$1
+
+ipa-restore $SNAPSHOT_FILE
+
+exec ipa-start
+

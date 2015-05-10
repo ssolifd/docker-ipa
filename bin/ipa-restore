@@ -1,0 +1,18 @@
+#!/bin/bash
+
+SNAPSHOT_FILE=$1
+
+service ipa stop
+
+echo "Deletes previous configuration and logs ... https://bugzilla.redhat.com/show_bug.cgi?id=857939"
+rm -rf  /etc/sysconfig/dirsrv* \
+	/etc/dirsrv* \
+        /var/log/dirsrv/* \
+        /var/lib/dirsrv/* \
+        /var/run/lock/dirsrv/* \
+	/var/log/pki-ca/* \
+        /var/log/dirsrv/slapd-*/* 
+
+tar xvf ${SNAPSHOT_FILE} -C /
+
+
